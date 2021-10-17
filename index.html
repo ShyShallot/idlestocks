@@ -1,0 +1,90 @@
+    <head>
+        <script src="scripts/jquery.min.js"></script>
+        <script src="scripts/htmlfunctions.js"></script>
+    </head>
+    <body>
+        <script>
+        var ipc = require('electron').ipcRenderer;
+        const fs = require('fs');
+        UpdateData();
+        async function UpdateData(){
+            userData = UserData();
+            points = userData.points;
+            console.log(points);
+            const pointsInfo = document.createElement("p");
+            pointsInfo.setAttribute('class', "PointsInfo");
+            pointsInfo.setAttribute('id', `points`);
+            var pointsText = document.createTextNode(`You Currently have ${commafy(points)} points to spend.`);
+            pointsInfo.appendChild(pointsText);
+            document.body.appendChild(pointsInfo);
+            // Handle Stock Info
+            stockInfo = StockData();
+            console.log(stockInfo);
+            for (i = 0, l = stockInfo.length; i < l; i++){
+                curstock = stockInfo[i];
+                const newstockinfo = document.createElement("p");
+                newstockinfo.setAttribute('class', "STOCK");
+                newstockinfo.setAttribute('id', `${curstock.name}`);
+                [changePercent, string] = ChangePercent(curstock.price, curstock.lastprice);
+                var stocktext = document.createTextNode(`Stock ${curstock.name} Price: ${commafy(curstock.price)} points, Last Price: ${commafy(curstock.lastprice)}. Price Change: ${Math.abs(changePercent)}% ${string}. You Own ${curstock.owned} of this Stock.`);
+                newstockinfo.appendChild(stocktext);
+                document.body.appendChild(newstockinfo);
+                var buy = document.createElement("button");
+                buy.setAttribute('class', `STOCK`);
+                buy.setAttribute('id', `${curstock.name}`);
+                buy.setAttribute('onclick', `BuyStock(this.id)`);
+                buy.innerHTML = "Buy Stock";
+                document.body.appendChild(buy);
+                var buyInput = document.createElement("INPUT");
+                buyInput.setAttribute('class', `STOCK`);
+                buyInput.setAttribute('id', `${curstock.name}I`);
+                buyInput.setAttribute('type', `text`);
+                buyInput.innerHTML = "1";
+                document.body.appendChild(buyInput);
+                var sell = document.createElement("button");
+                sell.setAttribute('class', `STOCK`);
+                sell.setAttribute('id', `${curstock.name}`);
+                sell.setAttribute('onclick', `SellStock(this.id)`);
+                sell.innerHTML = "Sell Stock";
+                document.body.appendChild(sell);
+                var sellInput = document.createElement("INPUT");
+                sellInput.setAttribute('class', `STOCK`);
+                sellInput.setAttribute('id', `${curstock.name}IS`);
+                sellInput.setAttribute('type', `text`);
+                sellInput.innerHTML = "1";
+                document.body.appendChild(sellInput);
+            }
+            await sleep(5000);
+            ElementsCleanUp();
+            setTimeout(UpdateData, 250);
+        }
+        function ChangePercent(curPrice, lastPrice){
+            changePercent = Math.round((curPrice - lastPrice) / lastPrice * 100);
+            console.log(changePercent);
+            string = "Increase";
+            if(changePercent < 0){
+                string = "Decrease";
+            }
+
+            return [changePercent, string];
+        }
+        function UserData(){
+            raw = fs.readFileSync('./data/userdata.json');
+            return JSON.parse(raw);
+        }
+
+        function StockData(){
+            raw = fs.readFileSync('./data/stocks.json');
+            return JSON.parse(raw);
+        }
+
+        function ElementsCleanUp(){
+            points = document.getElementById('points');
+            points.parentNode.removeChild(points);
+            stockinfo = document.getElementsByClassName('STOCK');
+            while(stockinfo[0]){
+                stockinfo[0].parentNode.removeChild(stockinfo[0]);
+            }
+        }
+        </script>
+    </body>
