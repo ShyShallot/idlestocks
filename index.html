@@ -1,6 +1,7 @@
     <head>
         <script src="scripts/jquery.min.js"></script>
         <script src="scripts/htmlfunctions.js"></script>
+        <link rel="stylesheet" href="mainpage.css">
     </head>
     <body>
         <script>
@@ -27,11 +28,10 @@
             for (i = 0, l = stockInfo.length; i < l; i++){
                 curstock = stockInfo[i];
                 const newstockinfo = document.createElement("p");
-                newstockinfo.setAttribute('class', "STOCK");
+                newstockinfo.setAttribute('class', "STOCKT");
                 newstockinfo.setAttribute('id', `${curstock.name}`);
                 [changePercent, string] = ChangePercent(curstock.price, curstock.lastprice);
-                var stocktext = document.createTextNode(`Stock ${curstock.name} Price: ${commafy(curstock.price)} points, Last Price: ${commafy(curstock.lastprice)}. Price Change: ${Math.abs(changePercent)}% ${string}. You Own ${curstock.owned} of this Stock.`);
-                newstockinfo.appendChild(stocktext);
+                newstockinfo.innerHTML = `Stock ${curstock.name} Price: <a class="stockPrice">${commafy(curstock.price)}</a> points, Last Price: <a class="stockPrice">${commafy(curstock.lastprice)}</a>. Price Change: ${Math.abs(changePercent)}% ${string}. You Own ${curstock.owned} of this Stock.`;
                 document.body.appendChild(newstockinfo);
                 var buy = document.createElement("button");
                 buy.setAttribute('class', `STOCK`);
@@ -40,7 +40,7 @@
                 buy.innerHTML = "Buy Stock";
                 document.body.appendChild(buy);
                 var buyInput = document.createElement("INPUT");
-                buyInput.setAttribute('class', `STOCK`);
+                buyInput.setAttribute('class', `STOCKBOX`);
                 buyInput.setAttribute('id', `${curstock.name}I`);
                 buyInput.setAttribute('type', `text`);
                 buyInput.innerHTML = "1";
@@ -52,7 +52,7 @@
                 sell.innerHTML = "Sell Stock";
                 document.body.appendChild(sell);
                 var sellInput = document.createElement("INPUT");
-                sellInput.setAttribute('class', `STOCK`);
+                sellInput.setAttribute('class', `STOCKBOX`);
                 sellInput.setAttribute('id', `${curstock.name}IS`);
                 sellInput.setAttribute('type', `text`);
                 sellInput.innerHTML = "1";
@@ -82,9 +82,9 @@
         function ChangePercent(curPrice, lastPrice){
             changePercent = Math.round((curPrice - lastPrice) / lastPrice * 100);
             console.log(changePercent);
-            string = "Increase";
+            string = `<a class="green"> Increase</a>`;
             if(changePercent < 0){
-                string = "Decrease";
+                string = `<a class="red"> Decrease</a>`;
             }
 
             return [changePercent, string];
@@ -103,6 +103,14 @@
             points = document.getElementById('points');
             points.parentNode.removeChild(points);
             stockinfo = document.getElementsByClassName('STOCK');
+            while(stockinfo[0]){
+                stockinfo[0].parentNode.removeChild(stockinfo[0]);
+            }
+            stockinfo = document.getElementsByClassName('STOCKBOX');
+            while(stockinfo[0]){
+                stockinfo[0].parentNode.removeChild(stockinfo[0]);
+            }
+            stockinfo = document.getElementsByClassName('STOCKT');
             while(stockinfo[0]){
                 stockinfo[0].parentNode.removeChild(stockinfo[0]);
             }

@@ -20,7 +20,7 @@ function CreateWindow(){
     win.loadFile('./index.html');
     win.webContents.on(`did-finish-load`, async function(){
         win.show();
-        Econ(win);
+        //Econ(win);
     });
 }
 
@@ -75,14 +75,18 @@ async function Stocks(){
             console.log(`Owned Factor Less than 1, Capping`);
             ownedFactor = 0.95;
         }
+        if(ownedFactor >= 2){
+            ownedFactor *= ownedFactor /100;
+        }
         chance = Math.random();
         console.log(`Positive or Negative Chance: ${chance}`);
         pon = 1;
-        newStockPrice = (stockPrice + priceChange * priceMultiplier * ownedFactor) * pon;
+        newStockPrice = Math.round((stockPrice + priceChange * priceMultiplier * ownedFactor) * pon);
+        console.log(`Stock Price before caps: ${newStockPrice}`);
         if(chance >= 0.65){
             console.log(`Chance was negative`);
             pon = -1;
-            newStockPrice = (stockPrice + (priceChange / 2) * (priceMultiplier / 2) * ownedFactor) * pon;
+            newStockPrice = Math.round((stockPrice - ((priceChange * priceMultiplier * ownedFactor)/2)));
             console.log(`Updated Price After Negative: ${newStockPrice}`);
         }
         console.log(`New Stock Price ${newStockPrice}`);
@@ -101,13 +105,15 @@ async function Stocks(){
     console.log(`Chance for creating a new Stock ${chance}`);
     if(chance >= 0.7){
         console.log(`Creating a New Stock`);
-        await CreateNewStock();
+        newStock = CreateNewStock();
+        console.log(newStock);
+        stocks.push(newStock);
     }
     library.WriteToJson(stocks, `./data/stocks.json`);
     await library.sleep(5000);
 }
 
-async function CreateNewStock(){
+function CreateNewStock(){
     stocks = StockData();
     availChars = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z"];
     stockName = "";
@@ -124,10 +130,7 @@ async function CreateNewStock(){
     }
     newStock = {"name": stockName, "price": stockPrice, "lastprice": lastStockPrice, "owned": 0};
     console.log(newStock);
-    stocks.push(newStock);
-    console.log(stocks);
-    library.WriteToJson(stocks, './data/stocks.json');
-    return true;
+    return newStock;
 }
 
 ipcMain.on('synchronous-message', (event, args) => {
