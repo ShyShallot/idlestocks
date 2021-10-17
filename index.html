@@ -4,10 +4,14 @@
     </head>
     <body>
         <script>
-        var ipc = require('electron').ipcRenderer;
+        const {ipcRenderer} = require('electron')
         const fs = require('fs');
-        UpdateData();
-        async function UpdateData(){
+        UpdateData(false);
+        async function UpdateData(forcedUpdate){
+            if(forcedUpdate){
+                console.log(`Forced Data Update`);
+                ElementsCleanUp();
+            }
             userData = UserData();
             points = userData.points;
             console.log(points);
@@ -54,10 +58,27 @@
                 sellInput.innerHTML = "1";
                 document.body.appendChild(sellInput);
             }
-            await sleep(5000);
-            ElementsCleanUp();
-            setTimeout(UpdateData, 250);
+            if(forcedUpdate){
+                return;
+            } else {
+                await sleep(5000);
+                ElementsCleanUp();
+                setTimeout(UpdateData, 250);
+            }
         }
+
+        function BuyStock(id){
+            amountToBuy = document.getElementById(`${id}I`).value;
+            ipcRenderer.send('synchronous-message', [id, 'buy', `${amountToBuy}`]);
+            UpdateData(true);
+        }
+
+        function SellStock(id){
+            amountToBuy = document.getElementById(`${id}IS`).value;
+            ipcRenderer.send('synchronous-message', [id, 'sell', `${amountToBuy}`]);
+            UpdateData(true);
+        }
+
         function ChangePercent(curPrice, lastPrice){
             changePercent = Math.round((curPrice - lastPrice) / lastPrice * 100);
             console.log(changePercent);

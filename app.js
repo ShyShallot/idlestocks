@@ -1,5 +1,4 @@
-const {app, BrowserWindow } = require(`electron`);
-const ipc = require('electron').ipcMain;
+const {app, BrowserWindow, ipcMain, dialog } = require(`electron`);
 const path = require('path'); 
 const fs = require('fs');
 const library = require("./libraryfunctions");
@@ -161,4 +160,81 @@ async function CreateNewStock(){
     console.log(stocks);
     library.WriteToJson(stocks, './data/stocks.json');
     return true;
+}
+
+ipcMain.on('synchronous-message', (event, args) => {
+    // always have the first arg be the name of the stock and the second to buy or sell and the last being the amount
+    console.log(args);
+    amountTo = args[2];
+    amountTo = parseInt(amountTo);
+    if(isNaN(amountTo)){
+        dialog.showMessageBoxSync({
+            message: `You have provided an invalid number`,
+            type: 'error',
+            title: 'ERROR C#1'
+        });
+        return;
+    }
+    if(args[1] == 'buy'){
+        BuyStock(args[0], amountTo);
+    } else if(args[1] == 'sell'){
+        SellStock(args[0], amountTo)
+    } else {
+        dialog.showMessageBoxSync({
+            message: `This is a Developer Error, invalid/unrecognized command!`,
+            type: 'error',
+            title: 'ERROR C#4'
+        });
+        return;
+    }
+});
+
+function BuyStock(name, amountToBuy){
+    stockData = StockData();
+    userData = UserData();
+    for(i=0;i<stockData.length;i++){
+        curStock = stockData[i];
+        if(curStock.name == name){
+            priceOfAll = curStock.price * amountToBuy;
+            if(priceOfAll <= userData.points){
+                stockData[i].owned += amountToBuy;
+                userData.points -= priceOfAll;
+                library.WriteToJson(stockData, './data/stocks.json');
+                library.WriteToJson(userData, './data/userdata.json');
+                console.log(`Done`);
+            } else {
+                dialog.showMessageBoxSync({
+                    message: `You Do not have enough points for this request.`,
+                    type: 'error',
+                    title: 'ERROR C#2'
+                });
+                return;
+            }
+        }
+    }
+}
+
+function SellStock(name, amountToSell){
+    stockData = StockData();
+    userData = UserData();
+    for(i=0;i<stockData.length;i++){
+        curStock = stockData[i];
+        if(curStock.name == name){
+            priceOfAll = curStock.price * amountToSell;
+            if(curStock.owned >= amountToSell){
+                stockData[i].owned -= amountToSell;
+                userData.points += priceOfAll;
+                library.WriteToJson(stockData, './data/stocks.json');
+                library.WriteToJson(userData, './data/userdata.json');
+                console.log(`Done`);
+            } else {
+                dialog.showMessageBoxSync({
+                    message: `You Do not have enough stocks for this request.`,
+                    type: 'error',
+                    title: 'ERROR C#3'
+                });
+                return;
+            }
+        }
+    }
 }
