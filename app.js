@@ -40,8 +40,7 @@ app.on('window-all-closed', async () => {
 })
 
 async function Econ(window){
-    await ConvertLocalStorageToJson();
-    //await Stocks();
+    await Stocks();
     setTimeout(Econ, 5000);
 }
 
