@@ -19,14 +19,7 @@ function CreateWindow(){
     win.webContents.openDevTools();
     win.loadFile('./index.html');
     win.webContents.on(`did-finish-load`, async function(){
-        var stocks = StockData();
-        for(i=0;i<stocks.length;i++){
-            localStorage.removeItem(stocks[i].name);
-        }
-        localStorage.removeItem('points');
-        await library.sleep(500);
         win.show();
-        ConvertLocalStorageToJson();
         Econ(win);
     });
 }
@@ -50,30 +43,6 @@ async function Econ(window){
     await ConvertLocalStorageToJson();
     //await Stocks();
     setTimeout(Econ, 5000);
-}
-
-async function ConvertLocalStorageToJson(){
-    var stocks = StockData();
-    for(i=0;i<stocks.length;i++){
-        curStock = stocks[i];
-        newStockOwned = await localStorage.getItem(curStock.name);
-        newStockOwned = parseInt(newStockOwned);
-        console.log(newStockOwned);
-        if(!isNaN(newStockOwned)){
-            stocks[i].owned = newStockOwned;
-        } else {
-            continue;
-        }
-    }
-    library.WriteToJson(stocks, './data/stocks.json');
-    userData = UserData();
-    console.log(userData.points);
-    localStoragePoints = await localStorage.getItem('points');
-    console.log(localStoragePoints);
-    userData.points = parseInt(localStoragePoints);
-    if(!isNaN(userData.points)){
-        library.WriteToJson(userData, './data/userdata.json');
-    }
 }
 
 function UserData(){
